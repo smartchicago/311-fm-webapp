@@ -2,14 +2,16 @@
 		<div class="form-inline">
 			<strong>Pick two areas to compare:</strong>
 			<select id="slAreaA">		
+        <option disabled="disabled" selected="selected">Select a ward</option>
 				{{#each areas}}
-				<option value={{this}}>{{this}}</option>
+				<option value="{{area}}" {{#isSelectedA}}selected="selected"{{/isSelectedA}}>{{area}}</option>
 				{{/each}}
 			</select>
 			<strong>vs</strong>
 	  	<select id="slAreaB">
+	  	  <option disabled="disabled" selected="selected">Select a ward</option>
 				{{#each areas}}
-			  <option value={{this}}>{{this}}</option>
+			  <option value="{{area}}" {{#isSelectedB}}selected="selected"{{/isSelectedB}}>{{area}}</option>
 			  {{/each}}
 	    </select>  		
 	  </div>

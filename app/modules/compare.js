@@ -140,6 +140,7 @@ function(app) {
 
     serialize: function () {
       return {
+        data_loaded: this.model.modelA.get("ward") != "undefined" && this.model.modelB.get("ward") != "undefined",
         modelA_ward: this.model.modelA.get("ward"),
         modelA_stats: this.model.modelA.get("stats"),
         modelA_avgDays: this.model.modelA.avgDaysToCloseRequests(),
@@ -173,21 +174,17 @@ function(app) {
     tagName:"div",
     id:"compare",
 
-    modelA: new Compare.Model(),
-    modelB: new Compare.Model(),
- 
+    modelA: new Compare.Model({ward:this.first}),
+    modelB: new Compare.Model({ward:this.second}),
+
     events: {
       "change #slAreaA" : function(e) {
-        this.modelA.url = "http://freaky-mustard-data.herokuapp.com/api/v1/" +
-          e.currentTarget.value +
-          "/summary?start=2004-09-01&end=2012-12-12&callback=?";
-        this.modelA.fetch({success: this.modelA.successCallback, error: this.modelA.errorCallback});
+        this.loadDataForArea(this.modelA, e.currentTarget.value);
+        app.router.navigate("/compare/" + e.currentTarget.value + "-" + this.modelB.get('ward'));
       },
       "change #slAreaB" : function(e) {
-        this.modelB.url = "http://freaky-mustard-data.herokuapp.com/api/v1/" +
-          e.currentTarget.value +
-          "/summary?start=2004-09-01&end=2012-12-12&callback=?";
-        this.modelB.fetch({success: this.modelB.successCallback, error: this.modelB.errorCallback});
+        this.loadDataForArea(this.modelB, e.currentTarget.value);
+        app.router.navigate("/compare/" + this.modelA.get('ward') + "-" + e.currentTarget.value);
       },
       "change #slServiceRequest" : function(e) {
         var selected = $("#slServiceRequest :selected").text();
@@ -204,10 +201,31 @@ function(app) {
       }
     },
 
+    loadDataForArea: function(_model, area){
+      _model.url = "http://chicagoworks-api.herokuapp.com/api/v1/" +
+        area +
+        "/summary?start=2004-09-01&end=" + 
+        this.currentDateString() + "&callback=?";
+      _model.fetch({success: _model.successCallback, error: _model.errorCallback});
+    },
+
+    currentDateString: function(){
+      // return the date in format: yyyy-mm-dd
+      // for use in comparison queries to API
+      d = new Date();
+      year = d.getUTCFullYear();
+      month = d.getUTCMonth() + 1; // zero-indexed
+      day = d.getUTCDate();
+      
+      return year + "-" + month + "-" + day;
+    }, 
+
     beforeRender: function(ev) {
       this.insertView(".areas", new Compare.Views.Area({
         model: {modelA: this.modelA, modelB: this.modelB}
       }));
+      this.loadDataForArea(this.modelA, this.first);
+      this.loadDataForArea(this.modelB, this.second);      
     },
 
     afterRender: function(ev) {},
@@ -222,16 +240,20 @@ function(app) {
       
       // 50 wards are our areas for now...
       for (var i=1; i<=50; i++) {
-        areas.push(i);
+        areas.push({area:i, isSelectedA: i == this.first, isSelectedB: i == this.second });
       }
 
       return {
         stats: this.stats,
-        areas: areas
+        areas: areas,
+        first: this.first,
+        second: this.second
       };
     },
 
     initialize: function(o) {
+      this.first = o.first;
+      this.second = o.second;
       this.filters = o.filters;
       this.stats = o.stats;
       this.stats.on("reset", this.render, this);

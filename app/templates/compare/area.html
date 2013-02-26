@@ -4,6 +4,8 @@
 
 	<div class="vert"></div>
 
+  {{^data_loaded}}Choose two wards above to compare 311 requests.{{/data_loaded}}
+  {{#data_loaded}}
 	<div class="row compare-counts">	
 		<div class="span5">
 			<div class="row">
@@ -157,5 +159,5 @@
 		<div id="counts-right" class="span4">(0/0)</div>				
   </div>
   <br />
-
+  {{/data_loaded}}
 </div>		

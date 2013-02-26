@@ -24,6 +24,7 @@ function(app, Filter, ServiceRequest, Navigation, Map, List, Boundary, City, Gra
       "list": "list",
       "graphs": "graphs",
       "compare": "compare",
+      "compare/:first-:second": "compare",
       "browse": "browse",
       "about": "about"
     },
@@ -54,14 +55,16 @@ function(app, Filter, ServiceRequest, Navigation, Map, List, Boundary, City, Gra
       })).render();
       app.trigger("view_change", {view:"graphs"});
     },
-    compare: function(){
+    compare: function(first, second){
       var view = new Compare.Views.Compare({
         serviceRequests:this.serviceRequests,
         filters:this.filters,
-        stats:this.stats
+        stats:this.stats,
+        first:first,
+        second:second,
       });
       app.layout.setView("#content", view).render();
-      app.trigger("view_change", {view:"compare"});
+      // app.trigger("view_change", {view:"compare"});      
     },
     browse: function(){
       app.layout.setView("#content", new Browse.Views.Browse({
@@ -105,7 +108,7 @@ function(app, Filter, ServiceRequest, Navigation, Map, List, Boundary, City, Gra
       }, this);
     },
     handleViewChanged: function(ev){
-      console.log("view changed", ev);
+      console.log("view changed %o", ev);
       var loadview;
 
       if(ev.view == "list"){
@@ -126,6 +129,10 @@ function(app, Filter, ServiceRequest, Navigation, Map, List, Boundary, City, Gra
           filters:this.filters,
           stats:this.stats
         });
+        
+        // initialize the selections
+        loadview.loadDataForArea(loadview.modelA, this.first);
+        loadview.loadDataForArea(loadview.modelB, this.second);
       }else if(ev.view == "graphs"){
         loadview  = new Graphs.Views.Graphs({
           serviceRequests:this.serviceRequests,
